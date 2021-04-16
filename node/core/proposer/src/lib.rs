@@ -205,7 +205,6 @@ where
 		mut inherent_data: InherentData,
 		inherent_digests: DigestFor<Block>,
 		max_duration: time::Duration,
-		block_size_limit: Option<usize>,
 	) -> Self::Proposal {
 		async move {
 			let span = jaeger::Span::new(self.parent_header_hash, "propose");
@@ -238,7 +237,7 @@ where
 
 			let _span = span.child("authorship-propose");
 			self.inner
-				.propose(inherent_data, inherent_digests, max_duration, block_size_limit)
+				.propose(inherent_data, inherent_digests, max_duration)
 				.await
 				.map_err(Into::into)
 		}

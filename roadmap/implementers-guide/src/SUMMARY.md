@@ -12,7 +12,6 @@
 - [Runtime Architecture](runtime/README.md)
   - [Initializer Module](runtime/initializer.md)
   - [Configuration Module](runtime/configuration.md)
-  - [Shared](runtime/shared.md)
   - [Disputes Module](runtime/disputes.md)
   - [Paras Module](runtime/paras.md)
   - [Scheduler Module](runtime/scheduler.md)

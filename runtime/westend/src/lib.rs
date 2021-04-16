@@ -34,8 +34,7 @@ use runtime_common::{
 	mmr as mmr_common,
 	SlowAdjustingFeeUpdate, CurrencyToVote,
 	impls::ToAuthor,
-	BlockHashCount, BlockWeights, BlockLength, RocksDbWeight,
-	OffchainSolutionWeightLimit, OffchainSolutionLengthLimit,
+	BlockHashCount, BlockWeights, BlockLength, RocksDbWeight, OffchainSolutionWeightLimit,
 	ParachainSessionKeyPlaceholder, AssignmentSessionKeyPlaceholder,
 };
 use sp_runtime::{
@@ -366,8 +365,7 @@ impl pallet_election_provider_multi_phase::Config for Runtime {
 	type UnsignedPhase = UnsignedPhase;
 	type SolutionImprovementThreshold = SolutionImprovementThreshold;
 	type MinerMaxIterations = MinerMaxIterations;
-	type MinerMaxWeight = OffchainSolutionWeightLimit;
-	type MinerMaxLength = OffchainSolutionLengthLimit;
+	type MinerMaxWeight = OffchainSolutionWeightLimit; // For now use the one from staking.
 	type MinerTxPriority = NposSolutionPriority;
 	type DataProvider = Staking;
 	type OnChainAccuracy = Perbill;
