@@ -41,7 +41,7 @@ use runtime_parachains::{
 };
 use frame_support::{
 	construct_runtime, parameter_types,
-	traits::{Filter, KeyOwnerProofSystem, Randomness},
+	traits::{Filter, KeyOwnerProofSystem, Randomness, All, IsInVec},
 	weights::Weight,
 	PalletId
 };
@@ -88,8 +88,13 @@ use polkadot_parachain::primitives::Id as ParaId;
 
 use xcm::v0::{MultiLocation, NetworkId, BodyId};
 use xcm_executor::XcmExecutor;
-use xcm_builder::{AccountId32Aliases, ChildParachainConvertsVia, SovereignSignedViaLocation, CurrencyAdapter as XcmCurrencyAdapter, ChildParachainAsNative, SignedAccountId32AsNative, ChildSystemParachainAsSuperuser, LocationInverter, IsConcrete, FixedWeightBounds, FixedRateOfConcreteFungible, BackingToPlurality, SignedToAccountId32};
-use constants::{time::*, currency::*, fee::*};
+use xcm_builder::{
+	AccountId32Aliases, ChildParachainConvertsVia, SovereignSignedViaLocation,
+	CurrencyAdapter as XcmCurrencyAdapter, ChildParachainAsNative, SignedAccountId32AsNative,
+	ChildSystemParachainAsSuperuser, LocationInverter, IsConcrete, FixedWeightBounds,
+	BackingToPlurality, SignedToAccountId32, UsingComponents,
+};
+use constants::{time::*, currency::*, fee::*, size::*};
 use frame_support::traits::InstanceFilter;
 
 /// Constant values used within the runtime.
@@ -153,8 +158,6 @@ pub type SignedExtra = (
 
 /// Unchecked extrinsic type as expected by this runtime.
 pub type UncheckedExtrinsic = generic::UncheckedExtrinsic<Address, Call, Signature, SignedExtra>;
-/// Extrinsic type that has already been checked.
-pub type CheckedExtrinsic = generic::CheckedExtrinsic<AccountId, Nonce, Call>;
 /// Executive: handles dispatch to the various modules.
 pub type Executive = frame_executive::Executive<
 	Runtime,
@@ -597,6 +600,29 @@ pub type XcmRouter = (
 	xcm_sender::ChildParachainRouter<Runtime>,
 );
 
+use xcm::v0::{MultiAsset, MultiAsset::AllConcreteFungible, MultiLocation::{Null, X1}, Junction::Parachain};
+parameter_types! {
+	pub const RococoForTick: (MultiAsset, MultiLocation) = (AllConcreteFungible { id: Null }, X1(Parachain{id: 100}));
+	pub const RococoForTrick: (MultiAsset, MultiLocation) = (AllConcreteFungible { id: Null }, X1(Parachain{id: 110}));
+	pub const RococoForTrack: (MultiAsset, MultiLocation) = (AllConcreteFungible { id: Null }, X1(Parachain{id: 120}));
+}
+pub type TrustedTeleporters = (
+	xcm_builder::Case<RococoForTick>,
+	xcm_builder::Case<RococoForTrick>,
+	xcm_builder::Case<RococoForTrack>,
+);
+
+parameter_types! {
+	pub AllowUnpaidFrom: Vec<MultiLocation> = vec![ X1(Parachain{id: 100}), X1(Parachain{id: 110}), X1(Parachain{id: 120}) ];
+}
+
+use xcm_builder::{TakeWeightCredit, AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom};
+pub type Barrier = (
+	TakeWeightCredit,
+	AllowTopLevelPaidExecutionFrom<All<MultiLocation>>,
+	AllowUnpaidExecutionFrom<IsInVec<AllowUnpaidFrom>>,	// <- Trusted parachains get free execution
+);
+
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type Call = Call;
@@ -604,11 +630,11 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = LocalAssetTransactor;
 	type OriginConverter = LocalOriginConverter;
 	type IsReserve = ();
-	type IsTeleporter = ();
+	type IsTeleporter = TrustedTeleporters;
 	type LocationInverter = LocationInverter<Ancestry>;
-	type Barrier = ();
+	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<BaseXcmWeight, Call>;
-	type Trader = FixedRateOfConcreteFungible<RocFee>;
+	type Trader = UsingComponents<WeightToFee, RocLocation, AccountId, Balances, ToAuthor<Runtime>>;
 	type ResponseHandler = ();
 }
 
@@ -619,7 +645,8 @@ parameter_types! {
 /// Type to convert an `Origin` type value into a `MultiLocation` value which represents an interior location
 /// of this chain.
 pub type LocalOriginToLocation = (
-	// We allow an origin from the Collective pallet to be used in XCM as a corresponding Plurality
+	// We allow an origin from the Collective pallet to be used in XCM as a corresponding Plurality of the
+	// `Unit` body.
 	BackingToPlurality<Origin, pallet_collective::Origin<Runtime>, CollectiveBodyId>,
 	// And a usual Signed origin to be used in XCM as a corresponding AccountId32
 	SignedToAccountId32<Origin, AccountId, RococoNetwork>,
@@ -667,7 +694,7 @@ impl paras_sudo_wrapper::Config for Runtime {}
 parameter_types! {
 	pub const ParaDeposit: Balance = 5 * DOLLARS;
 	pub const DataDepositPerByte: Balance = deposit(0, 1);
-	pub const MaxCodeSize: u32 = 10 * 1024 * 1024; // 10 MB
+	pub const MaxCodeSize: u32 = MAX_CODE_SIZE;
 	pub const MaxHeadSize: u32 = 20 * 1024; // 20 KB
 }
 
