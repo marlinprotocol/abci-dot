@@ -1296,6 +1296,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom-rpc"
+version = "2.0.0"
+dependencies = [
+ "frame-system",
+ "jsonrpc-core",
+ "jsonrpc-core-client",
+ "jsonrpc-derive",
+ "sc-client-api",
+ "sc-rpc",
+ "sc-rpc-api",
+ "sp-api",
+ "sp-blockchain",
+ "sp-runtime",
+]
+
+[[package]]
 name = "data-encoding"
 version = "2.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6171,11 +6187,14 @@ version = "0.8.30"
 dependencies = [
  "beefy-gadget",
  "beefy-gadget-rpc",
+ "custom-rpc",
+ "frame-system",
  "jsonrpc-core",
  "pallet-mmr-rpc",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
  "polkadot-primitives",
+ "polkadot-runtime",
  "sc-chain-spec",
  "sc-client-api",
  "sc-consensus-babe",

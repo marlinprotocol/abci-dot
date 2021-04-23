@@ -20,7 +20,7 @@
 
 use std::sync::Arc;
 
-use polkadot_primitives::v0::{Block, BlockNumber, AccountId, Nonce, Balance, Hash};
+use polkadot_primitives::v0::{Block, BlockNumber, AccountId, Nonce, Balance, Hash, Header};
 use sp_api::ProvideRuntimeApi;
 use txpool_api::TransactionPool;
 use sp_block_builder::BlockBuilder;
@@ -34,7 +34,9 @@ use sc_consensus_babe::Epoch;
 use sc_finality_grandpa::FinalityProofProvider;
 use sc_sync_state_rpc::{SyncStateRpcApi, SyncStateRpcHandler};
 pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};
-
+use polkadot_runtime::{
+	Runtime,
+};
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpc_core::IoHandler<sc_rpc::Metadata>;
 
@@ -176,6 +178,11 @@ pub fn create_full<C, P, SC, B, BS>(deps: FullDeps<C, P, SC, B, BS>) -> RpcExten
 			subscription_executor,
 			finality_provider,
 		))
+	);
+	io.extend_with(
+		custom_rpc::SpamCheckApi::<Header>::to_delegate(
+			custom_rpc::SpamCheck::<C, Runtime, Block>::new(client.clone()),
+		)
 	);
 	io.extend_with(
 		SyncStateRpcApi::to_delegate(SyncStateRpcHandler::new(
