@@ -20,7 +20,7 @@
 
 use std::sync::Arc;
 
-use polkadot_primitives::v0::{Block, BlockNumber, AccountId, Nonce, Balance, Hash, Header};
+use polkadot_primitives::v0::{Block, BlockNumber, AccountId, Nonce, Balance, Hash};
 use sp_api::ProvideRuntimeApi;
 use txpool_api::TransactionPool;
 use sp_block_builder::BlockBuilder;
@@ -180,7 +180,7 @@ pub fn create_full<C, P, SC, B, BS>(deps: FullDeps<C, P, SC, B, BS>) -> RpcExten
 		))
 	);
 	io.extend_with(
-		custom_rpc::SpamCheckApi::<Header>::to_delegate(
+		custom_rpc::SpamCheckApi::to_delegate(
 			custom_rpc::SpamCheck::<C, Runtime, Block>::new(client.clone()),
 		)
 	);

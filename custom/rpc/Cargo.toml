@@ -9,6 +9,7 @@ description = "custom RPC"
 jsonrpc-core = "15.0"
 jsonrpc-core-client = "15.0"
 jsonrpc-derive = "15.0"
+hex = "0.4.2"
 
 # Substrate packages
 
@@ -19,7 +20,11 @@ sp-api = { git = "https://github.com/paritytech/substrate", branch = "master" }
 sp-runtime = { git = "https://github.com/paritytech/substrate", branch = "master" }
 frame-system = {git = "https://github.com/paritytech/substrate", branch = "master", default-features = false }
 sc-client-api = { git = "https://github.com/paritytech/substrate", branch = "master"  }
+prost = "0.6"
 # local packages
+
+[build-dependencies]
+prost-build = { version = "0.6" }
 
 [features]
 default = ["std"]
